@@ -1,5 +1,5 @@
-# Grading Portal
-Grading portal is a web-based academic management system designed to help students efficiently manage their grades, calculate GPA/CGPA, and analyze academic performance. It combines multiple tools into a single interactive interface, making it easier to track progress and plan future results.
+# FlexPortal
+FlexPortal is a web-based academic management system designed to help students efficiently manage their grades, calculate GPA/CGPA, and analyze academic performance. It combines multiple tools into a single interactive interface, making it easier to track progress and plan future results.
 
 🚀 Features:
 
