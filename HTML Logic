@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FlexPortal — Student OS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #050810; color: #e2e2e2; font-family: 'Inter', sans-serif; overflow: hidden; }
+ 
+/* Grid bg */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(124,157,242,0.035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(124,157,242,0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+ 
+/* Glow */
+.ambient { position:fixed; top:-180px; left:50%; transform:translateX(-50%); width:700px; height:350px;
+  background:radial-gradient(ellipse,rgba(124,157,242,0.07) 0%,transparent 70%); pointer-events:none; z-index:0; }
+ 
+.glass { background:rgba(13,21,48,0.55); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.07); }
+.sidebar-glass { background:rgba(7,13,33,0.8); backdrop-filter:blur(28px); border-right:1px solid rgba(124,157,242,0.09); }
+ 
+.nav-item { transition:all .2s; border-right: 3px solid transparent; }
+.nav-item:hover { background:rgba(255,255,255,0.04); color:#fff; }
+.nav-active { background:rgba(124,157,242,0.1); color:#7C9DF2 !important; border-right-color:#7C9DF2; }
+ 
+.page { display:none; animation:fadeUp .3s ease; }
+.page.active { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+ 
+.bar-track { height:5px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:99px; transition:width .8s ease; }
+.bar-blue { background:linear-gradient(90deg,#7C9DF2,#a78bfa); box-shadow:0 0 8px rgba(124,157,242,.4); }
+.bar-green { background:linear-gradient(90deg,#34d399,#10b981); box-shadow:0 0 8px rgba(52,211,153,.35); }
+.bar-yellow { background:linear-gradient(90deg,#fbbf24,#f59e0b); box-shadow:0 0 8px rgba(251,191,36,.3); }
+.bar-red { background:linear-gradient(90deg,#f87171,#ef4444); }
+ 
+.chip { display:inline-flex; align-items:center; padding:2px 9px; border-radius:99px;
+  font-size:10px; font-weight:700; font-family:'Lexend',sans-serif; letter-spacing:.06em; text-transform:uppercase; }
+.chip-blue { background:rgba(124,157,242,.14); color:#7C9DF2; }
+.chip-green { background:rgba(52,211,.15,.15); color:#34d399; }
+.chip-yellow { background:rgba(251,191,36,.14); color:#fbbf24; }
+.chip-red { background:rgba(248,113,113,.14); color:#f87171; }
+.chip-purple { background:rgba(167,139,250,.14); color:#a78bfa; }
+.chip-gray { background:rgba(255,255,255,.07); color:#94a3b8; }
+ 
+.stat-box { background:rgba(13,21,48,.5); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:20px; transition:border-color .2s; }
+.stat-box:hover { border-color:rgba(124,157,242,.2); }
+ 
+.card-hover { transition:transform .2s, border-color .2s; }
+.card-hover:hover { transform:translateY(-3px); border-color:rgba(124,157,242,.25) !important; }
+ 
+.scroll-area { height:calc(100vh - 64px); overflow-y:auto; }
+.scroll-area::-webkit-scrollbar { width:3px; }
+.scroll-area::-webkit-scrollbar-thumb { background:rgba(124,157,242,.15); border-radius:99px; }
+ 
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { background:rgba(255,255,255,.03); color:#475569; font-family:'Lexend',sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding:11px 16px; text-align:left; }
+.tbl td { padding:13px 16px; border-bottom:1px solid rgba(255,255,255,.04); font-size:13px; }
+.tbl tr:hover td { background:rgba(255,255,255,.02); }
+.tbl tr:last-child td { border-bottom:none; }
+ 
+.inp { background:rgba(5,8,16,.9); border:1px solid rgba(255,255,255,.1); color:#e2e2e2;
+  padding:10px 14px; border-radius:8px; font-family:'Inter',sans-serif; font-size:13px;
+  width:100%; outline:none; transition:border-color .2s; }
+.inp:focus { border-color:#7C9DF2; box-shadow:0 0 0 3px rgba(124,157,242,.1); }
+ 
+.sel { background:rgba(13,21,48,.8); border:1px solid rgba(255,255,255,.1); color:#7C9DF2;
+  padding:7px 10px; border-radius:7px; font-family:'Lexend',sans-serif;
+  font-size:11px; font-weight:700; cursor:pointer; outline:none; }
+.sel:focus { border-color:#7C9DF2; }
+.sel option { background:#0d1530; color:#e2e2e2; }
+ 
+.btn { font-family:'Lexend',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase; padding:10px 20px;
+  border-radius:8px; border:none; cursor:pointer; transition:all .2s; }
+.btn-primary { background:#7C9DF2; color:#050810; box-shadow:0 0 20px rgba(124,157,242,.2); }
+.btn-primary:hover { filter:brightness(1.1); transform:translateY(-1px); }
+.btn-ghost { background:transparent; color:#64748b; border:1px solid rgba(255,255,255,.1); }
+.btn-ghost:hover { border-color:rgba(124,157,242,.4); color:#7C9DF2; }
+.btn-danger { background:rgba(248,113,113,.15); color:#f87171; border:1px solid rgba(248,113,113,.2); }
+.btn-danger:hover { background:rgba(248,113,113,.25); }
+ 
+.gpa-display { font-family:'Space Grotesk',sans-serif; font-size:48px; font-weight:900;
+  color:#7C9DF2; text-shadow:0 0 30px rgba(124,157,242,.35); line-height:1; }
+ 
+/* Toast */
+#toast { position:fixed; bottom:24px; right:24px; z-index:999; display:none;
+  background:rgba(13,21,48,.95); border:1px solid rgba(124,157,242,.3);
+  color:#e2e2e2; padding:12px 20px; border-radius:10px;
+  font-size:13px; font-family:'Lexend',sans-serif; backdrop-filter:blur(20px);
+  animation:slideIn .3s ease; }
+@keyframes slideIn { from{transform:translateX(30px);opacity:0} to{transform:translateX(0);opacity:1} }
+ 
+input[type="range"] { -webkit-appearance:none; height:4px; background:rgba(21,41,90,.8); border-radius:99px; outline:none; width:100%; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; background:#7C9DF2; border-radius:50%; cursor:pointer; box-shadow:0 0 8px rgba(124,157,242,.5); }
+ 
+.stagger > * { animation:fadeUp .4s ease backwards; }
+.stagger > *:nth-child(1){animation-delay:.05s} .stagger > *:nth-child(2){animation-delay:.1s}
+.stagger > *:nth-child(3){animation-delay:.15s} .stagger > *:nth-child(4){animation-delay:.2s}
+.stagger > *:nth-child(5){animation-delay:.25s}
+ 
+.timeline-line { position:absolute; left:7px; top:4px; bottom:4px; width:1px; background:rgba(255,255,255,.08); }
+.timeline-dot { position:absolute; left:0; top:3px; width:15px; height:15px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; }
+</style>
+</head>
+<body>
+<div id="login-screen" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:#050810;">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(124,157,242,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(124,157,242,0.035) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;"></div>
+  <div style="position:absolute;top:-180px;left:50%;transform:translateX(-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(124,157,242,0.09) 0%,transparent 70%);pointer-events:none;"></div>
+  <div style="position:relative;width:420px;animation:fadeUp .5s ease;">
+    <div style="text-align:center;margin-bottom:36px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:rgba(124,157,242,.12);border:1px solid rgba(124,157,242,.3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
+        <span class="material-symbols-outlined" style="color:#7C9DF2;font-size:26px;font-variation-settings:'FILL' 1;">school</span>
+      </div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:900;color:#7C9DF2;letter-spacing:.18em;text-shadow:0 0 20px rgba(124,157,242,.4);">FLEXPORTAL</div>
+      <div style="font-family:'Lexend',sans-serif;font-size:10px;color:#334155;letter-spacing:.22em;margin-top:4px;">STUDENT OS v2.0 — FAST NUCES KARACHI</div>
+    </div>
+    <div class="glass" style="border-radius:18px;padding:32px;border-top:2px solid rgba(124,157,242,.25);">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;">Welcome back</div>
+      <div style="font-family:'Inter',sans-serif;font-size:13px;color:#475569;margin-bottom:24px;">Sign in to access your academic portal</div>
+      <div style="margin-bottom:20px;">
+        <div style="font-family:'Lexend',sans-serif;font-size:10px;color:#475569;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;">Quick Sign In</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button onclick="quickLogin('moiz')" style="padding:12px;border-radius:10px;background:rgba(124,157,242,.08);border:1px solid rgba(124,157,242,.2);cursor:pointer;text-align:left;transition:all .2s;" onmouseover="this.style.background='rgba(124,157,242,.15)'" onmouseout="this.style.background='rgba(124,157,242,.08)'">
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7C9DF2,#a78bfa);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:#050810;margin-bottom:8px;">MR</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#fff;">Moiz Adnan</div>
+            <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;margin-top:2px;">CE-2A</div>
+          </button>
+          <button onclick="quickLogin('hammad')" style="padding:12px;border-radius:10px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);cursor:pointer;text-align:left;transition:all .2s;" onmouseover="this.style.background='rgba(167,139,250,.15)'" onmouseout="this.style.background='rgba(167,139,250,.08)'">
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7C9DF2);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:#050810;margin-bottom:8px;">HA</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#fff;">Hammad</div>
+            <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;margin-top:2px;">CE-2A</div>
+          </button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.06);"></div>
+        <span style="font-family:'Lexend',sans-serif;font-size:10px;color:#334155;">or enter manually</span>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.06);"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <label style="font-family:'Lexend',sans-serif;font-size:10px;color:#475569;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:6px;">Student ID</label>
+          <input id="login-id" class="inp" placeholder="e.g. 25K-6584" onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+        <div>
+          <label style="font-family:'Lexend',sans-serif;font-size:10px;color:#475569;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:6px;">Password</label>
+          <input id="login-pass" type="password" class="inp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+        <div id="login-error" style="display:none;font-family:'Lexend',sans-serif;font-size:11px;color:#f87171;padding:8px 12px;background:rgba(248,113,113,.08);border-radius:6px;border:1px solid rgba(248,113,113,.2);">Incorrect ID or password.</div>
+        <button onclick="doLogin()" class="btn btn-primary" style="width:100%;padding:13px;font-size:12px;margin-top:4px;">Sign In &rarr;</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:18px;font-family:'Lexend',sans-serif;font-size:10px;color:#1e293b;">FAST-NUCES Karachi &bull; Computer Engineering &bull; 2024</div>
+  </div>
+</div>
+ 
+<div id="portal-wrapper" style="display:none;">
+<div class="ambient"></div>
+<div id="toast"></div>
+ 
+<!-- SIDEBAR -->
+<aside class="sidebar-glass fixed left-0 top-0 h-screen w-[255px] flex flex-col z-50">
+  <div style="padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,.05);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:36px;height:36px;border-radius:9px;background:rgba(124,157,242,.12);border:1px solid rgba(124,157,242,.25);display:flex;align-items:center;justify-content:center;">
+        <span class="material-symbols-outlined" style="color:#7C9DF2;font-size:17px;font-variation-settings:'FILL' 1;">school</span>
+      </div>
+      <div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:900;color:#7C9DF2;letter-spacing:.18em;text-shadow:0 0 18px rgba(124,157,242,.35);">FLEXPORTAL</div>
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;letter-spacing:.22em;margin-top:2px;">STUDENT OS v2.0</div>
+      </div>
+    </div>
+  </div>
+ 
+  <nav style="flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;">
+    <button onclick="showPage('dashboard')" id="nav-dashboard" class="nav-item nav-active" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:none;background:transparent;cursor:pointer;text-align:left;color:#7C9DF2;">
+      <span class="material-symbols-outlined" style="font-size:19px;font-variation-settings:'FILL' 1;">dashboard</span>
+      <span style="font-family:'Lexend',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;">Command Center</span>
+    </button>
+    <button onclick="showPage('gpa')" id="nav-gpa" class="nav-item" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:none;background:transparent;cursor:pointer;text-align:left;color:#475569;">
+      <span class="material-symbols-outlined" style="font-size:19px;">calculate</span>
+      <span style="font-family:'Lexend',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;">GPA / CGPA Calc</span>
+    </button>
+    <button onclick="showPage('whatif')" id="nav-whatif" class="nav-item" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:none;background:transparent;cursor:pointer;text-align:left;color:#475569;">
+      <span class="material-symbols-outlined" style="font-size:19px;">biotech</span>
+      <span style="font-family:'Lexend',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;">What-If Simulator</span>
+    </button>
+    <button onclick="showPage('records')" id="nav-records" class="nav-item" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:none;background:transparent;cursor:pointer;text-align:left;color:#475569;">
+      <span class="material-symbols-outlined" style="font-size:19px;">history_edu</span>
+      <span style="font-family:'Lexend',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;">Saved Records</span>
+    </button>
+    <button onclick="showPage('marks')" id="nav-marks" class="nav-item" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:none;background:transparent;cursor:pointer;text-align:left;color:#475569;">
+      <span class="material-symbols-outlined" style="font-size:19px;">grade</span>
+      <span style="font-family:'Lexend',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;">Marks Breakdown</span>
+    </button>
+    <button onclick="showPage('transcript')" id="nav-transcript" class="nav-item" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:none;background:transparent;cursor:pointer;text-align:left;color:#475569;">
+      <span class="material-symbols-outlined" style="font-size:19px;">description</span>
+      <span style="font-family:'Lexend',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;">Transcript</span>
+    </button>
+  </nav>
+ 
+  <div style="padding:14px;border-top:1px solid rgba(255,255,255,.05);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div id="user-initials" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7C9DF2,#a78bfa);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:13px;color:#050810;flex-shrink:0;">—</div>
+      <div style="flex:1;min-width:0;">
+        <div id="user-name" style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#e2e2e2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+        <div id="user-meta" style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;letter-spacing:.15em;text-transform:uppercase;margin-top:1px;">—</div>
+      </div>
+      <button onclick="logout()" title="Logout" style="background:none;border:none;cursor:pointer;color:#334155;padding:4px;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#334155'">
+        <span class="material-symbols-outlined" style="font-size:17px;">logout</span>
+      </button>
+    </div>
+  </div>
+</aside>
+ 
+<!-- TOPBAR -->
+<header style="position:fixed;top:0;left:255px;right:0;height:64px;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(5,8,16,.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.05);">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <span id="page-title" style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:800;color:#7C9DF2;letter-spacing:.18em;border-left:2px solid #7C9DF2;padding-left:12px;">Command Center</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="chip chip-green">Sem 4 Active</span>
+    <button onclick="clearAllRecords()" class="btn btn-danger" style="padding:6px 12px;font-size:10px;">Clear Records</button>
+  </div>
+</header>
+ 
+<!-- MAIN -->
+<main style="margin-left:255px;margin-top:64px;" class="scroll-area">
+<div style="padding:24px;max-width:1200px;margin:0 auto;">
+ 
+<!-- ══════════════ DASHBOARD ══════════════ -->
+<div id="page-dashboard" class="page active stagger">
+ 
+  <!-- Top stats -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+    <div class="stat-box" style="grid-column:span 2;position:relative;overflow:hidden;">
+      <div style="position:absolute;right:-10px;top:-10px;width:100px;height:100px;background:radial-gradient(circle,rgba(124,157,242,.07),transparent);border-radius:50%;"></div>
+      <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;">Cumulative GPA</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
+        <span id="dash-cgpa" class="gpa-display">—</span>
+        <span style="color:#334155;font-size:16px;font-family:'Space Grotesk',sans-serif;">/4.00</span>
+        <span id="dash-standing-chip" class="chip chip-blue" style="margin-left:4px;">No Records</span>
+      </div>
+      <div class="bar-track"><div id="dash-cgpa-bar" class="bar-fill bar-blue" style="width:0%"></div></div>
+      <div id="dash-standing-text" style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:6px;letter-spacing:.1em;text-transform:uppercase;">Add courses to calculate</div>
+    </div>
+ 
+    <div class="stat-box" style="text-align:center;">
+      <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;">Records Saved</div>
+      <div id="dash-records-count" style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:900;color:#fff;">0</div>
+      <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:4px;">calculations</div>
+    </div>
+ 
+    <div class="stat-box" style="text-align:center;">
+      <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px;">Total Credits</div>
+      <div id="dash-credits" style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:900;color:#fff;">0</div>
+      <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:4px;">credit hours</div>
+    </div>
+  </div>
+ 
+  <!-- Recent records -->
+  <div class="glass" style="border-radius:14px;overflow:hidden;margin-bottom:20px;">
+    <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:#7C9DF2;font-size:17px;">history</span>
+        Recent Records
+      </span>
+      <button onclick="showPage('records')" class="btn btn-ghost" style="padding:5px 12px;font-size:10px;">View All →</button>
+    </div>
+    <div id="dash-recent" style="padding:16px 20px;">
+      <p style="color:#334155;font-size:13px;text-align:center;padding:20px 0;font-family:'Lexend',sans-serif;">No records yet. Calculate your GPA to get started.</p>
+    </div>
+  </div>
+ 
+  <!-- Grade scale reference -->
+  <div class="glass" style="border-radius:14px;padding:20px;">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <span class="material-symbols-outlined" style="color:#7C9DF2;font-size:17px;">menu_book</span>
+      Grade Scale Reference
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+      <div style="text-align:center;padding:10px 6px;border-radius:8px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.15);">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;color:#34d399;font-size:16px;">A</div>
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:3px;">4.00</div>
+      </div>
+      <div style="text-align:center;padding:10px 6px;border-radius:8px;background:rgba(52,211,153,.05);border:1px solid rgba(52,211,153,.1);">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;color:#6ee7b7;font-size:16px;">A-</div>
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:3px;">3.67</div>
+      </div>
+      <div style="text-align:center;padding:10px 6px;border-radius:8px;background:rgba(124,157,242,.07);border:1px solid rgba(124,157,242,.15);">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;color:#7C9DF2;font-size:16px;">B+</div>
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:3px;">3.33</div>
+      </div>
+      <div style="text-align:center;padding:10px 6px;border-radius:8px;background:rgba(124,157,242,.05);border:1px solid rgba(124,157,242,.1);">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;color:#93b4f7;font-size:16px;">B</div>
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:3px;">3.00</div>
+      </div>
+      <div style="text-align:center;padding:10px 6px;border-radius:8px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.15);">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fbbf24;font-size:16px;">B-</div>
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:3px;">2.67</div>
+      </div>
+      <div style="text-align:center;padding:10px 6px;border-radius:8px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.12);">
+        <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;color:#f87171;font-size:16px;">F</div>
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:3px;">0.00</div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══════════════ GPA/CGPA CALCULATOR ══════════════ -->
+<div id="page-gpa" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;">
+    <div>
+      <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#7C9DF2;letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px;">▸ C Logic Powered</div>
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;color:#fff;">GPA / CGPA Calculator</h2>
+      <p style="color:#475569;font-size:13px;margin-top:4px;">Enter semesters and courses. Non-credit courses are skipped automatically.</p>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="resetGPACalc()" class="btn btn-ghost">Reset</button>
+      <button onclick="calculateAndSave()" class="btn btn-primary">
+        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;margin-right:4px;">save</span>Calculate & Save
+      </button>
+    </div>
+  </div>
+ 
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+    <!-- Semesters input -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;">
+          <span class="material-symbols-outlined" style="color:#7C9DF2;font-size:17px;">layers</span>
+          SEMESTERS
+        </div>
+        <button onclick="addSemester()" class="btn btn-ghost" style="padding:6px 14px;font-size:10px;display:flex;align-items:center;gap:4px;">
+          <span class="material-symbols-outlined" style="font-size:14px;">add</span>Add Semester
+        </button>
+      </div>
+      <div id="semesters-container" style="display:flex;flex-direction:column;gap:12px;"></div>
+    </div>
+ 
+    <!-- Result panel -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="glass" style="border-radius:14px;padding:22px;border-top:3px solid #7C9DF2;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px;">Live Result</div>
+        <div id="result-gpa" class="gpa-display" style="margin-bottom:4px;">—</div>
+        <div style="color:#334155;font-size:14px;font-family:'Space Grotesk',sans-serif;margin-bottom:16px;">CGPA / 4.00</div>
+        <div class="bar-track" style="margin-bottom:10px;"><div id="result-bar" class="bar-fill bar-blue" style="width:0%"></div></div>
+        <div id="result-standing" class="chip chip-gray" style="margin-bottom:16px;">Waiting for input</div>
+ 
+        <div style="border-top:1px solid rgba(255,255,255,.05);padding-top:14px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#475569;">Total Credits</span>
+            <span id="result-credits" style="color:#fff;font-weight:600;font-family:'Space Grotesk',sans-serif;">0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#475569;">Quality Points</span>
+            <span id="result-points" style="color:#fff;font-weight:600;font-family:'Space Grotesk',sans-serif;">0.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#475569;">Semesters</span>
+            <span id="result-sems" style="color:#fff;font-weight:600;font-family:'Space Grotesk',sans-serif;">0</span>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Per-semester GPAs -->
+      <div class="glass" style="border-radius:14px;padding:18px;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;">Per-Semester GPA</div>
+        <div id="sem-gpas" style="display:flex;flex-direction:column;gap:8px;">
+          <p style="color:#334155;font-size:12px;">No semesters added yet.</p>
+        </div>
+      </div>
+ 
+      <!-- Honors info -->
+      <div class="glass" style="border-radius:14px;padding:18px;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;">Honors Thresholds</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;align-items:center;">
+            <span style="color:#94a3b8;">Cum Laude</span><span class="chip chip-green">≥ 3.75</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;align-items:center;">
+            <span style="color:#94a3b8;">Dean's List</span><span class="chip chip-blue">≥ 3.50</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;align-items:center;">
+            <span style="color:#94a3b8;">Good Standing</span><span class="chip chip-gray">≥ 3.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;align-items:center;">
+            <span style="color:#94a3b8;">Satisfactory</span><span class="chip chip-yellow">≥ 2.00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;align-items:center;">
+            <span style="color:#94a3b8;">At Risk</span><span class="chip chip-red">below 2.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══════════════ WHAT-IF SIMULATOR ══════════════ -->
+<div id="page-whatif" class="page">
+  <div style="margin-bottom:22px;">
+    <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#7C9DF2;letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px;">▸ C Logic Powered</div>
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;color:#fff;">What-If Simulator</h2>
+    <p style="color:#475569;font-size:13px;margin-top:4px;">Project your CGPA based on expected grades. See exactly what GPA you need to hit honors.</p>
+  </div>
+ 
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <!-- Inputs -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="glass" style="border-radius:14px;padding:22px;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;">Your Current Status</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="font-family:'Lexend',sans-serif;font-size:10px;color:#475569;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:6px;">Current CGPA</label>
+            <input id="wi-cgpa" type="number" min="0" max="4" step="0.01" value="3.62" class="inp" oninput="runWhatIf()" style="font-size:20px;font-weight:700;color:#7C9DF2;font-family:'Space Grotesk',sans-serif;"/>
+          </div>
+          <div>
+            <label style="font-family:'Lexend',sans-serif;font-size:10px;color:#475569;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:6px;">Credits Already Earned</label>
+            <input id="wi-credits" type="range" min="0" max="130" value="64" oninput="document.getElementById('wi-credits-display').textContent=this.value+' credits';runWhatIf()"/>
+            <div style="display:flex;justify-content:space-between;margin-top:5px;font-family:'Lexend',sans-serif;font-size:10px;color:#475569;">
+              <span>0</span><span id="wi-credits-display" style="color:#7C9DF2;font-weight:700;">64 credits</span><span>130</span>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="glass" style="border-radius:14px;padding:22px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;">This Semester's Courses</div>
+          <button onclick="addWICourse()" class="btn btn-ghost" style="padding:5px 10px;font-size:10px;">+ Add</button>
+        </div>
+        <div id="wi-courses" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+ 
+    <!-- Results -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="glass" style="border-radius:14px;padding:22px;border-top:3px solid #a78bfa;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;">Projected Outcome</div>
+        <div id="wi-result-gpa" class="gpa-display" style="color:#a78bfa;margin-bottom:4px;">—</div>
+        <div style="color:#334155;font-size:14px;font-family:'Space Grotesk',sans-serif;margin-bottom:14px;">Projected CGPA</div>
+        <div class="bar-track" style="margin-bottom:12px;"><div id="wi-bar" class="bar-fill" style="width:0%;background:linear-gradient(90deg,#a78bfa,#7C9DF2);box-shadow:0 0 8px rgba(167,139,250,.4);"></div></div>
+        <div id="wi-standing" class="chip chip-gray">Waiting...</div>
+ 
+        <div style="margin-top:18px;border-top:1px solid rgba(255,255,255,.05);padding-top:16px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#475569;">Semester GPA</span>
+            <span id="wi-sem-gpa" style="color:#a78bfa;font-weight:700;font-family:'Space Grotesk',sans-serif;">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:#475569;">Change</span>
+            <span id="wi-delta" style="font-weight:700;font-family:'Space Grotesk',sans-serif;">—</span>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Honors targets -->
+      <div class="glass" style="border-radius:14px;padding:22px;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;">Semester GPA Needed To Reach</div>
+        <div style="display:flex;flex-direction:column;gap:10px;" id="wi-targets">
+          <p style="color:#334155;font-size:12px;">Add courses to calculate.</p>
+        </div>
+      </div>
+ 
+      <!-- Advice -->
+      <div class="glass" style="border-radius:14px;padding:22px;" id="wi-advice-box" style="display:none;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px;">Assessment</div>
+        <p id="wi-advice" style="color:#94a3b8;font-size:13px;line-height:1.6;"></p>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══════════════ SAVED RECORDS ══════════════ -->
+<div id="page-records" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+    <div>
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;color:#fff;">Saved Records</h2>
+      <p style="color:#475569;font-size:13px;margin-top:4px;">All GPA calculations are stored in your browser's local storage.</p>
+    </div>
+    <button onclick="clearAllRecords()" class="btn btn-danger">Clear All</button>
+  </div>
+  <div id="records-container">
+    <p style="color:#334155;font-size:14px;text-align:center;padding:40px;font-family:'Lexend',sans-serif;">No saved records yet.</p>
+  </div>
+</div>
+ 
+<!-- ══════════════ MARKS BREAKDOWN ══════════════ -->
+<div id="page-marks" class="page">
+  <div style="margin-bottom:22px;">
+    <h2 style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;color:#fff;">Marks Breakdown</h2>
+    <p style="color:#475569;font-size:13px;margin-top:4px;">Enter marks for each component. Weighted total is calculated live.</p>
+  </div>
+ 
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;">
+    <div style="display:flex;flex-direction:column;gap:14px;">
+ 
+      <!-- Course select -->
+      <div class="glass" style="border-radius:14px;padding:20px;">
+        <div style="display:flex;gap:12px;align-items:flex-end;">
+          <div style="flex:1;">
+            <label style="font-family:'Lexend',sans-serif;font-size:10px;color:#475569;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:6px;">Course Name</label>
+            <input id="mk-course-name" class="inp" placeholder="e.g. Data Structures" oninput="calcMarks()"/>
+          </div>
+          <div style="width:100px;">
+            <label style="font-family:'Lexend',sans-serif;font-size:10px;color:#475569;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:6px;">Credit Hours</label>
+            <input id="mk-ch" type="number" min="1" max="5" value="3" class="inp" oninput="calcMarks()"/>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Components -->
+      <div class="glass" style="border-radius:14px;overflow:hidden;">
+        <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);">
+          <span style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;">Assessment Components</span>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Component</th><th>Obtained</th><th>Total</th><th>Weight %</th><th>Contribution</th></tr></thead>
+          <tbody>
+            <tr>
+              <td style="color:#7C9DF2;font-weight:600;font-family:'Lexend',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Quizzes</td>
+              <td><input type="number" id="mk-q-obt" min="0" value="0" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td><input type="number" id="mk-q-tot" min="1" value="15" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td><input type="number" id="mk-q-wt" min="0" max="100" value="15" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td id="mk-q-contrib" style="color:#7C9DF2;font-weight:700;font-family:'Space Grotesk',sans-serif;">0.00</td>
+            </tr>
+            <tr>
+              <td style="color:#a78bfa;font-weight:600;font-family:'Lexend',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Assignments</td>
+              <td><input type="number" id="mk-a-obt" min="0" value="0" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td><input type="number" id="mk-a-tot" min="1" value="10" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td><input type="number" id="mk-a-wt" min="0" max="100" value="10" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td id="mk-a-contrib" style="color:#a78bfa;font-weight:700;font-family:'Space Grotesk',sans-serif;">0.00</td>
+            </tr>
+            <tr>
+              <td style="color:#fbbf24;font-weight:600;font-family:'Lexend',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Mid-Term</td>
+              <td><input type="number" id="mk-m-obt" min="0" value="0" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td><input type="number" id="mk-m-tot" min="1" value="25" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td><input type="number" id="mk-m-wt" min="0" max="100" value="25" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td id="mk-m-contrib" style="color:#fbbf24;font-weight:700;font-family:'Space Grotesk',sans-serif;">0.00</td>
+            </tr>
+            <tr>
+              <td style="color:#34d399;font-weight:600;font-family:'Lexend',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Final Exam</td>
+              <td><input type="number" id="mk-f-obt" min="0" value="0" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td><input type="number" id="mk-f-tot" min="1" value="50" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td><input type="number" id="mk-f-wt" min="0" max="100" value="50" class="inp" style="padding:6px 8px;" oninput="calcMarks()"/></td>
+              <td id="mk-f-contrib" style="color:#34d399;font-weight:700;font-family:'Space Grotesk',sans-serif;">0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <!-- Result -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="glass" style="border-radius:14px;padding:22px;border-top:3px solid #34d399;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;">Total Score</div>
+        <div id="mk-total" style="font-family:'Space Grotesk',sans-serif;font-size:48px;font-weight:900;color:#34d399;text-shadow:0 0 25px rgba(52,211,153,.3);margin-bottom:4px;">0.00</div>
+        <div style="color:#334155;font-size:14px;font-family:'Space Grotesk',sans-serif;margin-bottom:14px;">out of 100</div>
+        <div class="bar-track" style="margin-bottom:12px;"><div id="mk-bar" class="bar-fill bar-green" style="width:0%"></div></div>
+        <div id="mk-grade-display" style="display:flex;gap:8px;align-items:center;">
+          <span style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;color:#fff;">—</span>
+          <span id="mk-grade-chip" class="chip chip-gray">No data</span>
+        </div>
+      </div>
+ 
+      <div class="glass" style="border-radius:14px;padding:18px;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;">Grade Point</div>
+        <div id="mk-gp" style="font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:900;color:#7C9DF2;">—</div>
+        <div style="color:#334155;font-size:12px;margin-top:4px;">Quality Points: <span id="mk-qp" style="color:#94a3b8;">—</span></div>
+      </div>
+ 
+      <div class="glass" style="border-radius:14px;padding:18px;">
+        <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px;">Weight Check</div>
+        <div id="mk-weight-check" style="font-size:12px;color:#475569;">Weights sum: 100%</div>
+        <div class="bar-track" style="margin-top:8px;"><div id="mk-wt-bar" class="bar-fill bar-blue" style="width:100%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ══════════════ TRANSCRIPT ══════════════ -->
+<div id="page-transcript" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+    <div>
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;color:#fff;">Academic Transcript</h2>
+      <p style="color:#475569;font-size:13px;margin-top:4px;">Generated from your saved GPA records.</p>
+    </div>
+    <button onclick="window.print()" class="btn btn-ghost" style="display:flex;align-items:center;gap:6px;">
+      <span class="material-symbols-outlined" style="font-size:15px;">print</span>Print
+    </button>
+  </div>
+ 
+  <!-- Student info -->
+  <div class="glass" style="border-radius:14px;padding:22px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+      <div><div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px;">Student</div><div id="tr-name" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;">—</div></div>
+      <div><div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px;">Student ID</div><div id="tr-id" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;">—</div></div>
+      <div><div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px;">Department</div><div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;">Computer Engineering</div></div>
+      <div><div style="font-family:'Lexend',sans-serif;font-size:9px;color:#475569;letter-spacing:.15em;text-transform:uppercase;margin-bottom:5px;">Cumulative GPA</div><div id="tr-cgpa" style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:900;color:#7C9DF2;">—</div></div>
+    </div>
+  </div>
+ 
+  <div id="transcript-body">
+    <p style="color:#334155;font-size:14px;text-align:center;padding:40px;font-family:'Lexend',sans-serif;">No records saved yet. Calculate your GPA/CGPA first.</p>
+  </div>
+</div>
+ 
+</div><!-- /main inner -->
+</main>
+ 
+<script>
+ 
+// ══════════════════════════════════════════════
+// LOGIN & USER SYSTEM
+// ══════════════════════════════════════════════
+ 
+var USERS = {
+    'moiz':   { id:'25K-6584', password:'moiz123',   name:'Moiz Adnan', initials:'MR', section:'CE-2A', storageKey:'fp_records_moiz' },
+    'hammad': { id:'25K-6501', password:'hammad123', name:'Hammad',     initials:'HA', section:'CE-2A', storageKey:'fp_records_hammad' }
+};
+ 
+var currentUser = null;
+ 
+function quickLogin(key) {
+    currentUser = USERS[key];
+    enterPortal();
+}
+ 
+function doLogin() {
+    var id   = document.getElementById('login-id').value.trim();
+    var pass = document.getElementById('login-pass').value.trim();
+    var err  = document.getElementById('login-error');
+    var matched = null;
+    for (var k in USERS) {
+        if (USERS[k].id === id && USERS[k].password === pass) {
+            matched = USERS[k]; break;
+        }
+    }
+    if (!matched) { err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    currentUser = matched;
+    enterPortal();
+}
+ 
+function enterPortal() {
+    document.getElementById('user-initials').textContent = currentUser.initials;
+    document.getElementById('user-name').textContent     = currentUser.name;
+    document.getElementById('user-meta').textContent     = currentUser.id + ' • ' + currentUser.section;
+    var ls = document.getElementById('login-screen');
+    ls.style.transition = 'opacity .4s ease';
+    ls.style.opacity = '0';
+    setTimeout(function() {
+        ls.style.display = 'none';
+        document.getElementById('portal-wrapper').style.display = 'block';
+        refreshDashboard();
+        renderRecords();
+        renderTranscript();
+    }, 380);
+}
+ 
+function logout() {
+    currentUser = null;
+    document.getElementById('portal-wrapper').style.display = 'none';
+    var ls = document.getElementById('login-screen');
+    ls.style.display = 'flex';
+    ls.style.opacity = '1';
+    document.getElementById('login-id').value = '';
+    document.getElementById('login-pass').value = '';
+}
+ 
+// ══════════════════════════════════════════════
+// STORAGE — per-user localStorage (like saveToFile / viewRecords in C)
+// ══════════════════════════════════════════════
+ 
+function loadRecords() {
+    if (!currentUser) return [];
+    try { return JSON.parse(localStorage.getItem(currentUser.storageKey) || '[]'); }
+    catch(e) { return []; }
+}
+ 
+function saveRecord(record) {
+    if (!currentUser) return;
+    var records = loadRecords();
+    record.id   = Date.now();
+    record.date = new Date().toLocaleString();
+    records.unshift(record);
+    localStorage.setItem(currentUser.storageKey, JSON.stringify(records));
+    refreshDashboard();
+    renderRecords();
+    renderTranscript();
+}
+ 
+function clearAllRecords() {
+    if (!currentUser) return;
+    if (!confirm('Clear all records for ' + currentUser.name + '?')) return;
+    localStorage.removeItem(currentUser.storageKey);
+    refreshDashboard();
+    renderRecords();
+    renderTranscript();
+    showToast('All records cleared.');
+}
+ 
+function deleteRecord(id) {
+    var records = loadRecords().filter(function(r){ return r.id !== id; });
+    localStorage.setItem(currentUser.storageKey, JSON.stringify(records));
+    refreshDashboard();
+    renderRecords();
+    renderTranscript();
+}
+ 
+ 
+ 
+ 
+// ══════════════════════════════════════════════
+// CORE C LOGIC — ported exactly from your C code
+// ══════════════════════════════════════════════
+ 
+function getGradePoint(grade) {
+    if (grade === "A")  return 4.00;
+    if (grade === "A-") return 3.67;
+    if (grade === "B+") return 3.33;
+    if (grade === "B")  return 3.00;
+    if (grade === "B-") return 2.67;
+    if (grade === "C+") return 2.33;
+    if (grade === "C")  return 2.00;
+    if (grade === "C-") return 1.67;
+    if (grade === "D+") return 1.33;
+    if (grade === "D")  return 1.00;
+    if (grade === "F")  return 0.00;
+    return 0.0; // invalid grade — same as your C default
+}
+ 
+function gradeFromPercent(pct) {
+    if (pct >= 90) return "A";
+    if (pct >= 85) return "A-";
+    if (pct >= 80) return "B+";
+    if (pct >= 75) return "B";
+    if (pct >= 70) return "B-";
+    if (pct >= 65) return "C+";
+    if (pct >= 60) return "C";
+    if (pct >= 55) return "C-";
+    if (pct >= 50) return "D+";
+    if (pct >= 45) return "D";
+    return "F";
+}
+ 
+function getStanding(cgpa) {
+    if (cgpa >= 3.75) return { label:"Cum Laude", cls:"chip-green" };
+    if (cgpa >= 3.50) return { label:"Dean's List", cls:"chip-blue" };
+    if (cgpa >= 3.00) return { label:"Good Standing", cls:"chip-gray" };
+    if (cgpa >= 2.00) return { label:"Satisfactory", cls:"chip-yellow" };
+    return { label:"At Risk", cls:"chip-red" };
+}
+ 
+// ──────── NAVIGATION ────────
+ 
+const pages = ['dashboard','gpa','whatif','records','marks','transcript'];
+const titles = {
+    dashboard:'Command Center', gpa:'GPA / CGPA Calc',
+    whatif:'What-If Simulator', records:'Saved Records',
+    marks:'Marks Breakdown', transcript:'Academic Transcript'
+};
+ 
+function showPage(name) {
+    pages.forEach(p => {
+        document.getElementById('page-'+p).classList.remove('active');
+        var nav = document.getElementById('nav-'+p);
+        if (nav) { nav.classList.remove('nav-active'); nav.style.color='#475569'; }
+    });
+    document.getElementById('page-'+name).classList.add('active');
+    var activeNav = document.getElementById('nav-'+name);
+    if (activeNav) { activeNav.classList.add('nav-active'); activeNav.style.color=''; }
+    document.getElementById('page-title').textContent = titles[name];
+    if (name === 'records') renderRecords();
+    if (name === 'transcript') renderTranscript();
+    if (name === 'gpa') liveCalc();
+}
+ 
+// ──────── TOAST ────────
+ 
+function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display='none'; }, 2800);
+}
+ 
+// ──────── GPA/CGPA CALCULATOR (C logic: calculateSemester, calculateCGPA) ────────
+ 
+var semesterData = [];
+ 
+function addSemester() {
+    semesterData.push({ courses: [] });
+    renderSemesters();
+    liveCalc();
+}
+ 
+function removeSemester(si) {
+    semesterData.splice(si, 1);
+    renderSemesters();
+    liveCalc();
+}
+ 
+function addCourse(si) {
+    semesterData[si].courses.push({ name:'', grade:'A', ch:3, nonCredit:false });
+    renderSemesters();
+    liveCalc();
+}
+ 
+function removeCourse(si, ci) {
+    semesterData[si].courses.splice(ci, 1);
+    renderSemesters();
+    liveCalc();
+}
+ 
+function updateCourse(si, ci, field, value) {
+    if (field === 'nonCredit') semesterData[si].courses[ci].nonCredit = value;
+    else if (field === 'grade') semesterData[si].courses[ci].grade = value;
+    else if (field === 'ch')   semesterData[si].courses[ci].ch = parseFloat(value) || 0;
+    else if (field === 'name') semesterData[si].courses[ci].name = value;
+    liveCalc();
+}
+ 
+var GRADES = ["A","A-","B+","B","B-","C+","C","C-","D+","D","F"];
+ 
+function gradeOptions(selected) {
+    return GRADES.map(g => `<option value="${g}" ${g===selected?'selected':''}>${g}</option>`).join('');
+}
+ 
+function renderSemesters() {
+    var c = document.getElementById('semesters-container');
+    if (semesterData.length === 0) {
+        c.innerHTML = '<p style="color:#334155;font-size:13px;text-align:center;padding:30px;font-family:\'Lexend\',sans-serif;">No semesters added. Click "Add Semester" to begin.</p>';
+        return;
+    }
+    c.innerHTML = semesterData.map(function(sem, si) {
+        var courseRows = sem.courses.map(function(cr, ci) {
+            return `<div style="display:grid;grid-template-columns:1fr 90px 80px 60px 32px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);">
+              <input class="inp" style="padding:7px 10px;font-size:12px;" placeholder="Course name (optional)"
+                value="${cr.name}" oninput="updateCourse(${si},${ci},'name',this.value)"/>
+              <select class="sel" style="width:100%;" ${cr.nonCredit?'disabled':''} onchange="updateCourse(${si},${ci},'grade',this.value)">${gradeOptions(cr.grade)}</select>
+              <input type="number" class="inp" style="padding:7px 8px;font-size:12px;" min="0.5" max="6" step="0.5"
+                value="${cr.ch}" ${cr.nonCredit?'disabled':''} oninput="updateCourse(${si},${ci},'ch',this.value)"/>
+              <label style="display:flex;align-items:center;gap:4px;font-family:'Lexend',sans-serif;font-size:9px;color:#475569;cursor:pointer;white-space:nowrap;">
+                <input type="checkbox" ${cr.nonCredit?'checked':''} onchange="updateCourse(${si},${ci},'nonCredit',this.checked)" style="accent-color:#7C9DF2;"/> NC
+              </label>
+              <button onclick="removeCourse(${si},${ci})" style="background:none;border:none;cursor:pointer;color:#334155;display:flex;align-items:center;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#334155'">
+                <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+              </button>
+            </div>`;
+        }).join('');
+ 
+        var semGPA = calcSemGPA(sem);
+ 
+        return `<div class="glass" style="border-radius:14px;overflow:hidden;">
+          <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;background:rgba(124,157,242,.04);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="chip chip-blue">Semester ${si+1}</span>
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#fff;">
+                GPA: <span style="color:#7C9DF2;">${semGPA > 0 ? semGPA.toFixed(2) : '—'}</span>
+              </span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="addCourse(${si})" class="btn btn-ghost" style="padding:5px 10px;font-size:10px;">+ Course</button>
+              <button onclick="removeSemester(${si})" class="btn btn-danger" style="padding:5px 10px;font-size:10px;">Remove</button>
+            </div>
+          </div>
+          <div style="padding:10px 20px 16px;">
+            <div style="display:grid;grid-template-columns:1fr 90px 80px 60px 32px;gap:8px;margin-bottom:4px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.04);">
+              <span style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;letter-spacing:.12em;text-transform:uppercase;">Course</span>
+              <span style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;letter-spacing:.12em;text-transform:uppercase;">Grade</span>
+              <span style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;letter-spacing:.12em;text-transform:uppercase;">Cr. Hrs</span>
+              <span style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;letter-spacing:.12em;text-transform:uppercase;">Non-Cr</span>
+              <span></span>
+            </div>
+            ${courseRows || '<p style="color:#334155;font-size:12px;padding:10px 0;font-family:\'Lexend\',sans-serif;">No courses. Click "+ Course".</p>'}
+          </div>
+        </div>`;
+    }).join('');
+}
+ 
+// ──────── C: calculateSemester logic ────────
+function calcSemGPA(sem) {
+    var totalPoints = 0;
+    var totalCredits = 0;
+    sem.courses.forEach(function(c) {
+        if (c.nonCredit) return; // same as your: if (c.isNonCredit == 1) continue;
+        var gp = getGradePoint(c.grade);
+        totalPoints  += gp * c.ch;
+        totalCredits += c.ch;
+    });
+    if (totalCredits === 0) return 0;
+    return totalPoints / totalCredits;
+}
+ 
+// ──────── C: calculateCGPA logic ────────
+function liveCalc() {
+    var totalPoints  = 0;
+    var totalCredits = 0;
+ 
+    semesterData.forEach(function(sem) {
+        sem.courses.forEach(function(c) {
+            if (c.nonCredit) return;
+            totalPoints  += getGradePoint(c.grade) * c.ch;
+            totalCredits += c.ch;
+        });
+    });
+ 
+    var cgpa = totalCredits > 0 ? totalPoints / totalCredits : 0;
+ 
+    document.getElementById('result-gpa').textContent      = totalCredits > 0 ? cgpa.toFixed(2) : '—';
+    document.getElementById('result-bar').style.width      = totalCredits > 0 ? ((cgpa/4)*100)+'%' : '0%';
+    document.getElementById('result-credits').textContent  = totalCredits.toFixed(1);
+    document.getElementById('result-points').textContent   = totalPoints.toFixed(2);
+    document.getElementById('result-sems').textContent     = semesterData.length;
+ 
+    var standing = getStanding(cgpa);
+    var chip = document.getElementById('result-standing');
+    chip.textContent  = totalCredits > 0 ? standing.label : 'Waiting for input';
+    chip.className    = 'chip ' + (totalCredits > 0 ? standing.cls : 'chip-gray');
+ 
+    // Per-semester GPA panel
+    var semGpasEl = document.getElementById('sem-gpas');
+    if (semesterData.length === 0) {
+        semGpasEl.innerHTML = '<p style="color:#334155;font-size:12px;">No semesters added yet.</p>';
+    } else {
+        semGpasEl.innerHTML = semesterData.map(function(sem, i) {
+            var gpa = calcSemGPA(sem);
+            var color = gpa >= 3.5 ? '#34d399' : gpa >= 3.0 ? '#7C9DF2' : gpa >= 2.0 ? '#fbbf24' : '#f87171';
+            return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+              <span style="color:#475569;">Semester ${i+1}</span>
+              <span style="color:${color};font-weight:700;font-family:'Space Grotesk',sans-serif;">${gpa > 0 ? gpa.toFixed(2) : '—'}</span>
+            </div>`;
+        }).join('');
+    }
+}
+ 
+function calculateAndSave() {
+    var totalPoints  = 0;
+    var totalCredits = 0;
+    var semsSummary  = [];
+ 
+    semesterData.forEach(function(sem, si) {
+        var semPoints  = 0;
+        var semCredits = 0;
+        var courses    = [];
+        sem.courses.forEach(function(c) {
+            if (c.nonCredit) { courses.push({ name:c.name||('Course'), nonCredit:true }); return; }
+            var gp = getGradePoint(c.grade);
+            semPoints  += gp * c.ch;
+            semCredits += c.ch;
+            totalPoints  += gp * c.ch;
+            totalCredits += c.ch;
+            courses.push({ name:c.name||'Unnamed Course', grade:c.grade, ch:c.ch, gp:gp });
+        });
+        var semGPA = semCredits > 0 ? semPoints / semCredits : 0;
+        semsSummary.push({ semNum:si+1, gpa:semGPA, courses:courses, points:semPoints, credits:semCredits });
+    });
+ 
+    if (totalCredits === 0) { showToast('No valid credit courses found.'); return; }
+ 
+    var cgpa = totalPoints / totalCredits;
+    saveRecord({ cgpa:cgpa, totalCredits:totalCredits, totalPoints:totalPoints, semesters:semsSummary });
+    showToast('Saved! CGPA: ' + cgpa.toFixed(2));
+}
+ 
+function resetGPACalc() {
+    semesterData = [];
+    renderSemesters();
+    liveCalc();
+}
+ 
+// ──────── WHAT-IF SIMULATOR (C: whatIfSimulator logic) ────────
+ 
+var wiCourses = [{ grade:'A-', ch:3 }, { grade:'B+', ch:3 }];
+ 
+function addWICourse() {
+    wiCourses.push({ grade:'A', ch:3 });
+    renderWICourses();
+    runWhatIf();
+}
+ 
+function removeWICourse(i) {
+    wiCourses.splice(i, 1);
+    renderWICourses();
+    runWhatIf();
+}
+ 
+function renderWICourses() {
+    var el = document.getElementById('wi-courses');
+    el.innerHTML = wiCourses.map(function(c, i) {
+        return `<div style="display:grid;grid-template-columns:1fr 80px 28px;gap:8px;align-items:center;">
+          <select class="sel" style="width:100%;" onchange="wiCourses[${i}].grade=this.value;runWhatIf()">${gradeOptions(c.grade)}</select>
+          <input type="number" class="inp" style="padding:7px 8px;font-size:12px;" min="0.5" max="6" step="0.5"
+            value="${c.ch}" oninput="wiCourses[${i}].ch=parseFloat(this.value)||0;runWhatIf()"/>
+          <button onclick="removeWICourse(${i})" style="background:none;border:none;cursor:pointer;color:#334155;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#334155'">
+            <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+          </button>
+        </div>`;
+    }).join('');
+}
+ 
+function runWhatIf() {
+    var currentCGPA   = parseFloat(document.getElementById('wi-cgpa').value) || 0;
+    var creditsEarned = parseFloat(document.getElementById('wi-credits').value) || 0;
+ 
+    var newPoints  = 0;
+    var newCredits = 0;
+    wiCourses.forEach(function(c) {
+        newPoints  += getGradePoint(c.grade) * c.ch;
+        newCredits += c.ch;
+    });
+ 
+    if (newCredits === 0) return;
+ 
+    var semGPA    = newPoints / newCredits;
+    var oldPoints = currentCGPA * creditsEarned;
+    var newCGPA   = (oldPoints + newPoints) / (creditsEarned + newCredits);
+    var delta     = newCGPA - currentCGPA;
+ 
+    document.getElementById('wi-result-gpa').textContent = newCGPA.toFixed(2);
+    document.getElementById('wi-bar').style.width = ((newCGPA/4)*100)+'%';
+    document.getElementById('wi-sem-gpa').textContent = semGPA.toFixed(2);
+    document.getElementById('wi-delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(2);
+    document.getElementById('wi-delta').style.color = delta >= 0 ? '#34d399' : '#f87171';
+ 
+    var st = getStanding(newCGPA);
+    var chip = document.getElementById('wi-standing');
+    chip.textContent = st.label;
+    chip.className   = 'chip ' + st.cls;
+ 
+    // Targets — same logic as C: needed = (target * totalCredits - oldPoints) / newCredits
+    var targets = [
+        { label:'Cum Laude (3.75)', target:3.75, cls:'chip-green' },
+        { label:"Dean's List (3.50)", target:3.50, cls:'chip-blue' },
+        { label:'Good Standing (3.00)', target:3.00, cls:'chip-gray' },
+    ];
+    document.getElementById('wi-targets').innerHTML = targets.map(function(t) {
+        var needed = (t.target * (creditsEarned + newCredits) - oldPoints) / newCredits;
+        var achievable = needed <= 4.0;
+        var already    = newCGPA >= t.target;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+          <span style="color:#94a3b8;">${t.label}</span>
+          ${already ? '<span class="chip chip-green">✓ Achieved</span>'
+            : achievable ? `<span style="color:#fff;font-weight:700;font-family:'Space Grotesk',sans-serif;">${needed.toFixed(2)} GPA needed</span>`
+            : '<span class="chip chip-red">Not this sem</span>'}
+        </div>`;
+    }).join('');
+ 
+    // Advice
+    var advice = '';
+    if (newCGPA >= 3.75) advice = 'Outstanding! You are on track for Cum Laude honors. Maintain consistency in your final exams.';
+    else if (newCGPA >= 3.50) advice = "You're on the Dean's List. A strong final exam performance could push you to Cum Laude.";
+    else if (newCGPA >= 3.00) advice = 'Good standing. Focus on improving quiz and assignment scores to reach Dean\'s List territory.';
+    else if (newCGPA >= 2.00) advice = 'Satisfactory, but there is room for significant improvement. Prioritize your lowest-performing courses.';
+    else advice = 'Your CGPA is at risk. Seek academic counseling and focus intensively on core courses.';
+    document.getElementById('wi-advice').textContent = advice;
+    document.getElementById('wi-advice-box').style.display = 'block';
+}
+ 
+// ──────── MARKS BREAKDOWN ────────
+ 
+function calcMarks() {
+    function contrib(obtId, totId, wtId, contribId) {
+        var obt = parseFloat(document.getElementById(obtId).value) || 0;
+        var tot = parseFloat(document.getElementById(totId).value) || 1;
+        var wt  = parseFloat(document.getElementById(wtId).value)  || 0;
+        var c   = (obt / tot) * wt;
+        document.getElementById(contribId).textContent = c.toFixed(2);
+        return c;
+    }
+ 
+    var q = contrib('mk-q-obt','mk-q-tot','mk-q-wt','mk-q-contrib');
+    var a = contrib('mk-a-obt','mk-a-tot','mk-a-wt','mk-a-contrib');
+    var m = contrib('mk-m-obt','mk-m-tot','mk-m-wt','mk-m-contrib');
+    var f = contrib('mk-f-obt','mk-f-tot','mk-f-wt','mk-f-contrib');
+    var total = q + a + m + f;
+ 
+    var wt_sum = (parseFloat(document.getElementById('mk-q-wt').value)||0) +
+                 (parseFloat(document.getElementById('mk-a-wt').value)||0) +
+                 (parseFloat(document.getElementById('mk-m-wt').value)||0) +
+                 (parseFloat(document.getElementById('mk-f-wt').value)||0);
+ 
+    document.getElementById('mk-total').textContent = total.toFixed(2);
+    document.getElementById('mk-bar').style.width = total + '%';
+ 
+    var grade = gradeFromPercent(total);
+    var gp = getGradePoint(grade);
+    var ch = parseFloat(document.getElementById('mk-ch').value) || 3;
+ 
+    document.getElementById('mk-grade-display').innerHTML =
+        `<span style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;color:#fff;">${grade}</span>
+         <span class="chip ${total>=80?'chip-green':total>=70?'chip-blue':total>=60?'chip-yellow':'chip-red'}">${total>=80?'Excellent':total>=70?'Good':total>=60?'Average':'Needs Work'}</span>`;
+    document.getElementById('mk-gp').textContent  = gp.toFixed(2);
+    document.getElementById('mk-qp').textContent  = (gp * ch).toFixed(2) + ' pts for ' + ch + ' CH';
+ 
+    var wtOk = Math.abs(wt_sum - 100) < 0.01;
+    document.getElementById('mk-weight-check').textContent = 'Weights sum: ' + wt_sum.toFixed(0) + '%' + (wtOk ? ' ✓' : ' ← should be 100%');
+    document.getElementById('mk-weight-check').style.color = wtOk ? '#34d399' : '#fbbf24';
+    document.getElementById('mk-wt-bar').style.width = Math.min(wt_sum, 100) + '%';
+    document.getElementById('mk-wt-bar').className = 'bar-fill ' + (wtOk ? 'bar-green' : 'bar-yellow');
+ 
+    document.getElementById('mk-total').style.color = total>=80?'#34d399':total>=60?'#7C9DF2':'#fbbf24';
+}
+ 
+// ──────── RENDER RECORDS (like viewRecords in C) ────────
+ 
+function renderRecords() {
+    var records = loadRecords();
+    var el = document.getElementById('records-container');
+    if (records.length === 0) {
+        el.innerHTML = '<p style="color:#334155;font-size:14px;text-align:center;padding:40px;font-family:\'Lexend\',sans-serif;">No saved records yet.</p>';
+        return;
+    }
+    el.innerHTML = records.map(function(r, idx) {
+        var st = getStanding(r.cgpa);
+        var semRows = r.semesters ? r.semesters.map(function(sem) {
+            var courseRows = sem.courses.map(function(c) {
+                if (c.nonCredit) return `<tr><td colspan="4" style="color:#334155;">${c.name||'Non-Credit Course'} — skipped</td></tr>`;
+                return `<tr>
+                  <td style="color:#94a3b8;">${c.name||'Course'}</td>
+                  <td style="color:#7C9DF2;font-weight:700;font-family:'Space Grotesk',sans-serif;">${c.grade}</td>
+                  <td style="color:#94a3b8;">${c.ch}</td>
+                  <td style="color:#94a3b8;">${c.gp.toFixed(2)}</td>
+                </tr>`;
+            }).join('');
+            return `<div style="margin-bottom:10px;">
+              <div style="font-family:'Lexend',sans-serif;font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;display:flex;justify-content:space-between;">
+                <span>Semester ${sem.semNum}</span>
+                <span style="color:#7C9DF2;">GPA: ${sem.gpa > 0 ? sem.gpa.toFixed(2) : '—'}</span>
+              </div>
+              <table class="tbl" style="font-size:12px;">
+                <thead><tr><th>Course</th><th>Grade</th><th>CH</th><th>GP</th></tr></thead>
+                <tbody>${courseRows}</tbody>
+              </table>
+            </div>`;
+        }).join('') : '';
+ 
+        return `<div class="glass card-hover" style="border-radius:14px;margin-bottom:12px;overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:900;color:#7C9DF2;">${r.cgpa.toFixed(2)}</div>
+              <div>
+                <span class="chip ${st.cls}" style="margin-bottom:3px;">${st.label}</span>
+                <div style="font-family:'Lexend',sans-serif;font-size:9px;color:#334155;margin-top:3px;">${r.date}</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:16px;font-size:12px;color:#475569;">
+              <span>${r.totalCredits.toFixed(1)} credits</span>
+              <span>${r.semesters ? r.semesters.length : 0} semesters</span>
+              <button onclick="deleteRecord(${r.id})" style="background:none;border:none;cursor:pointer;color:#334155;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#334155'">
+                <span class="material-symbols-outlined" style="font-size:16px;">delete</span>
+              </button>
+            </div>
+          </div>
+          ${semRows ? `<div style="padding:16px 20px;">${semRows}</div>` : ''}
+        </div>`;
+    }).join('');
+}
+ 
+// ──────── TRANSCRIPT ────────
+ 
+function renderTranscript() {
+    var records = loadRecords();
+    var tr_cgpa = document.getElementById('tr-cgpa');
+    var tr_body = document.getElementById('transcript-body');
+ 
+    if (records.length === 0) {
+        tr_cgpa.textContent = '—';
+        tr_body.innerHTML = '<p style="color:#334155;font-size:14px;text-align:center;padding:40px;font-family:\'Lexend\',sans-serif;">No records saved yet.</p>';
+        return;
+    }
+ 
+    var latest = records[0];
+    tr_cgpa.textContent = latest.cgpa.toFixed(2);
+    if (currentUser) {
+        document.getElementById('tr-name').textContent = currentUser.name;
+        document.getElementById('tr-id').textContent   = currentUser.id;
+    }
+ 
+    tr_body.innerHTML = records.map(function(r, ri) {
+        var st = getStanding(r.cgpa);
+        var semSections = r.semesters ? r.semesters.map(function(sem) {
+            var rows = sem.courses.map(function(c) {
+                if (c.nonCredit) return '';
+                return `<tr>
+                  <td style="color:#7C9DF2;font-family:'Space Grotesk',sans-serif;font-size:12px;">${c.name || 'Course'}</td>
+                  <td style="color:#94a3b8;">${c.ch}</td>
+                  <td style="font-weight:700;color:${c.gp>=3.5?'#34d399':c.gp>=3.0?'#7C9DF2':c.gp>=2.0?'#fbbf24':'#f87171'};">${c.grade}</td>
+                  <td style="color:#94a3b8;">${c.gp.toFixed(2)}</td>
+                  <td style="color:#94a3b8;">${(c.gp*c.ch).toFixed(2)}</td>
+                </tr>`;
+            }).join('');
+            return `<div style="margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;align-items:center;">
+                <span class="chip chip-blue">Semester ${sem.semNum}</span>
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#7C9DF2;">GPA: ${sem.gpa > 0 ? sem.gpa.toFixed(2) : '—'}</span>
+              </div>
+              <table class="tbl"><thead><tr><th>Course</th><th>CH</th><th>Grade</th><th>GP</th><th>Quality Pts</th></tr></thead>
+              <tbody>${rows}</tbody></table>
+            </div>`;
+        }).join('') : '';
+ 
+        return `<div class="glass" style="border-radius:14px;margin-bottom:14px;overflow:hidden;">
+          <div style="padding:14px 20px;background:rgba(124,157,242,.04);border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;">
+            <div style="display:flex;gap:10px;align-items:center;">
+              <span style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;">Record ${ri+1}</span>
+              <span style="font-family:'Lexend',sans-serif;font-size:10px;color:#334155;">${r.date}</span>
+            </div>
+            <div style="display:flex;gap:14px;font-size:12px;align-items:center;">
+              <span style="color:#475569;">CGPA: <span style="color:#7C9DF2;font-weight:700;">${r.cgpa.toFixed(2)}</span></span>
+              <span class="chip ${st.cls}">${st.label}</span>
+            </div>
+          </div>
+          <div style="padding:16px 20px;">${semSections}</div>
+          <div style="padding:12px 20px;border-top:1px solid rgba(255,255,255,.05);background:rgba(124,157,242,.03);display:flex;gap:24px;font-size:12px;">
+            <span style="color:#475569;">Total Credits: <span style="color:#fff;font-weight:600;">${r.totalCredits.toFixed(1)}</span></span>
+            <span style="color:#475569;">Quality Points: <span style="color:#fff;font-weight:600;">${r.totalPoints.toFixed(2)}</span></span>
+            <span style="color:#475569;">CGPA: <span style="color:#7C9DF2;font-weight:700;">${r.cgpa.toFixed(2)}</span></span>
+          </div>
+        </div>`;
+    }).join('');
+}
+ 
+// ──────── DASHBOARD REFRESH ────────
+ 
+function refreshDashboard() {
+    var records = loadRecords();
+    document.getElementById('dash-records-count').textContent = records.length;
+ 
+    if (records.length === 0) {
+        document.getElementById('dash-cgpa').textContent = '—';
+        document.getElementById('dash-cgpa-bar').style.width = '0%';
+        document.getElementById('dash-credits').textContent = '0';
+        document.getElementById('dash-standing-chip').textContent = 'No Records';
+        document.getElementById('dash-standing-chip').className = 'chip chip-gray';
+        document.getElementById('dash-standing-text').textContent = 'Add courses to calculate';
+        document.getElementById('dash-recent').innerHTML = '<p style="color:#334155;font-size:13px;text-align:center;padding:20px 0;font-family:\'Lexend\',sans-serif;">No records yet. Calculate your GPA to get started.</p>';
+        return;
+    }
+ 
+    var latest = records[0];
+    var st = getStanding(latest.cgpa);
+    document.getElementById('dash-cgpa').textContent = latest.cgpa.toFixed(2);
+    document.getElementById('dash-cgpa-bar').style.width = ((latest.cgpa/4)*100)+'%';
+    document.getElementById('dash-credits').textContent = latest.totalCredits.toFixed(0);
+    document.getElementById('dash-standing-chip').textContent = st.label;
+    document.getElementById('dash-standing-chip').className = 'chip ' + st.cls;
+    document.getElementById('dash-standing-text').textContent = 'Based on latest calculation • ' + latest.date;
+ 
+    document.getElementById('dash-recent').innerHTML = records.slice(0,4).map(function(r) {
+        var s = getStanding(r.cgpa);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:38px;height:38px;border-radius:9px;background:rgba(124,157,242,.1);border:1px solid rgba(124,157,242,.15);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;color:#7C9DF2;">${r.cgpa.toFixed(1)}</div>
+            <div>
+              <div style="font-size:13px;color:#e2e2e2;font-weight:600;">${r.semesters ? r.semesters.length : 0} Semester${r.semesters && r.semesters.length!==1?'s':''} • ${r.totalCredits.toFixed(0)} credits</div>
+              <div style="font-family:'Lexend',sans-serif;font-size:10px;color:#334155;margin-top:2px;">${r.date}</div>
+            </div>
+          </div>
+          <span class="chip ${s.cls}">${s.label}</span>
+        </div>`;
+    }).join('');
+}
+ 
+// ──────── INIT ────────
+ 
+window.onload = function() {
+    // Start with 1 semester and 3 courses by default
+    semesterData = [{ courses:[
+        { name:'', grade:'A-', ch:3, nonCredit:false },
+        { name:'', grade:'B+', ch:3, nonCredit:false },
+        { name:'', grade:'A',  ch:2, nonCredit:false },
+    ]}];
+    renderSemesters();
+    liveCalc();
+    renderWICourses();
+    runWhatIf();
+    calcMarks();
+    refreshDashboard();
+};
+</script>
+</div>
+</body>
+</html>
