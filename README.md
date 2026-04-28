@@ -1,17 +1,23 @@
 # Grading Portal
 Grading portal is a web-based academic management system designed to help students efficiently manage their grades, calculate GPA/CGPA, and analyze academic performance. It combines multiple tools into a single interactive interface, making it easier to track progress and plan future results.
 
-🚀 Features
+🚀 Features:
+
 🎓 GPA / CGPA Calculator
 Calculate semester-wise and cumulative GPA based on credit hours and grades.
+
 🔮 What-If Simulator
 Predict future CGPA by entering expected grades and course credits.
+
 📊 Marks Breakdown
 Calculate total marks using weighted components (quizzes, assignments, mid, final).
+
 🧾 Transcript Generator
 Automatically generate a transcript from saved academic records.
+
 💾 Record Storage
 Save and manage GPA records using browser local storage.
+
 📈 Dashboard Overview
 View cumulative GPA, credits, and academic standing in one place.
 
