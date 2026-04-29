@@ -1,0 +1,267 @@
+#include <stdio.h>
+#include <string.h>
+
+/*
+ * ============================================================
+ *  FlexPortal — All C Logic Used in the Web Portal
+ *  FAST-NUCES Karachi | Computer Engineering
+ * ============================================================
+ */
+
+/* ─── 1. GRADE POINT FUNCTION ───────────────────────────────
+   Used in: GPA Calculator, CGPA Calculator, What-If Simulator,
+            Marks Breakdown, Transcript
+   Portal JS equivalent: getGradePoint(grade)
+   ----------------------------------------------------------- */
+float getGradePoint(const char grade[]) {
+    if      (strcmp(grade, "A")  == 0) return 4.00;
+    else if (strcmp(grade, "A-") == 0) return 3.67;
+    else if (strcmp(grade, "B+") == 0) return 3.33;
+    else if (strcmp(grade, "B")  == 0) return 3.00;
+    else if (strcmp(grade, "B-") == 0) return 2.67;
+    else if (strcmp(grade, "C+") == 0) return 2.33;
+    else if (strcmp(grade, "C")  == 0) return 2.00;
+    else if (strcmp(grade, "C-") == 0) return 1.67;
+    else if (strcmp(grade, "D+") == 0) return 1.33;
+    else if (strcmp(grade, "D")  == 0) return 1.00;
+    else if (strcmp(grade, "F")  == 0) return 0.00;
+    else {
+        printf("Invalid grade! Using 0.0\n");
+        return 0.0;
+    }
+}
+
+/* ─── 2. GRADE FROM PERCENTAGE ──────────────────────────────
+   Used in: Marks Breakdown page (converts total % to letter)
+   Portal JS equivalent: gradeFromPercent(pct)
+   ----------------------------------------------------------- */
+const char* gradeFromPercent(float pct) {
+    if      (pct >= 90) return "A";
+    else if (pct >= 85) return "A-";
+    else if (pct >= 80) return "B+";
+    else if (pct >= 75) return "B";
+    else if (pct >= 70) return "B-";
+    else if (pct >= 65) return "C+";
+    else if (pct >= 60) return "C";
+    else if (pct >= 55) return "C-";
+    else if (pct >= 50) return "D+";
+    else if (pct >= 45) return "D";
+    else                return "F";
+}
+
+/* ─── 3. ACADEMIC STANDING FROM CGPA ────────────────────────
+   Used in: Dashboard, GPA Calculator result, What-If Simulator
+   Portal JS equivalent: getStanding(cgpa)
+   ----------------------------------------------------------- */
+const char* getStanding(float cgpa) {
+    if      (cgpa >= 3.75) return "Cum Laude";
+    else if (cgpa >= 3.50) return "Dean's List";
+    else if (cgpa >= 3.00) return "Good Standing";
+    else if (cgpa >= 2.00) return "Satisfactory";
+    else                   return "At Risk";
+}
+
+/* ─── 4. SEMESTER GPA CALCULATION ───────────────────────────
+   Used in: GPA / CGPA Calculator page
+   Non-credit courses are skipped (isNonCredit check)
+   Portal JS equivalent: calcSemGPA(sem)
+   Original C function: calculateSemester()
+   ----------------------------------------------------------- */
+
+typedef struct {
+    char  grade[3];
+    float creditHours;
+    int   isNonCredit;
+} Course;
+
+float calculateSemesterGPA(Course courses[], int numCourses) {
+    float totalPoints  = 0;
+    float totalCredits = 0;
+    int i;
+
+    for (i = 0; i < numCourses; i++) {
+        if (courses[i].isNonCredit == 1) continue; /* skip non-credit */
+        float gp = getGradePoint(courses[i].grade);
+        totalPoints  += gp * courses[i].creditHours;
+        totalCredits += courses[i].creditHours;
+    }
+
+    if (totalCredits == 0) return 0.0;
+    return totalPoints / totalCredits;
+}
+
+/* ─── 5. CGPA CALCULATION (multiple semesters) ──────────────
+   Used in: GPA / CGPA Calculator page (Calculate & Save)
+   Portal JS equivalent: liveCalc() + calculateAndSave()
+   Original C function: calculateCGPA()
+   ----------------------------------------------------------- */
+float calculateCGPA(float semesterPoints[], float semesterCredits[], int numSemesters) {
+    float totalPoints  = 0;
+    float totalCredits = 0;
+    int i;
+
+    for (i = 0; i < numSemesters; i++) {
+        totalPoints  += semesterPoints[i];
+        totalCredits += semesterCredits[i];
+    }
+
+    if (totalCredits == 0) return 0.0;
+    return totalPoints / totalCredits;
+}
+
+/* ─── 6. WHAT-IF / PROJECTED CGPA ───────────────────────────
+   Used in: What-If Simulator page
+   Given current CGPA + credits earned + new semester courses,
+   projects what the new CGPA will be.
+   Portal JS equivalent: runWhatIf()
+   Original C function: whatIfSimulator()
+   ----------------------------------------------------------- */
+float projectCGPA(float currentCGPA, float creditsEarned,
+                  float newSemPoints, float newSemCredits) {
+    float oldPoints = currentCGPA * creditsEarned;
+    float totalCredits = creditsEarned + newSemCredits;
+
+    if (totalCredits == 0) return 0.0;
+    return (oldPoints + newSemPoints) / totalCredits;
+}
+
+/* Also calculates what semester GPA is needed to reach a target CGPA.
+   Used in: What-If Simulator "GPA needed to reach honors" panel
+   ----------------------------------------------------------- */
+float semesterGPANeededForTarget(float currentCGPA, float creditsEarned,
+                                  float newSemCredits, float targetCGPA) {
+    /* Derived from: targetCGPA = (oldPoints + newPoints) / totalCredits
+       Solving for newPoints / newSemCredits                             */
+    float oldPoints    = currentCGPA * creditsEarned;
+    float totalCredits = creditsEarned + newSemCredits;
+    float neededPoints = targetCGPA * totalCredits - oldPoints;
+
+    if (newSemCredits == 0) return 0.0;
+    return neededPoints / newSemCredits;
+}
+
+/* ─── 7. WEIGHTED MARKS CALCULATION ─────────────────────────
+   Used in: Marks Breakdown page
+   Each component (quiz, assignment, mid, final) has:
+     obtained marks, total marks, and a weight percentage.
+   Contribution = (obtained / total) * weight
+   Portal JS equivalent: calcMarks() + contrib()
+   ----------------------------------------------------------- */
+float componentContribution(float obtained, float total, float weight) {
+    if (total == 0) return 0.0;
+    return (obtained / total) * weight;
+}
+
+float calculateTotalMarks(float quizObt,   float quizTot,   float quizWt,
+                           float assignObt, float assignTot, float assignWt,
+                           float midObt,    float midTot,    float midWt,
+                           float finalObt,  float finalTot,  float finalWt) {
+    float quiz   = componentContribution(quizObt,   quizTot,   quizWt);
+    float assign = componentContribution(assignObt, assignTot, assignWt);
+    float mid    = componentContribution(midObt,    midTot,    midWt);
+    float final_ = componentContribution(finalObt,  finalTot,  finalWt);
+    return quiz + assign + mid + final_;
+}
+
+/* ─── 8. SAVE RECORD TO FILE ─────────────────────────────────
+   Used in: GPA Calculator "Calculate & Save" button
+   In the portal this writes to browser localStorage.
+   In C this writes to a .txt file (records.txt).
+   Portal JS equivalent: saveRecord(record)
+   Original C function: saveToFile()
+   ----------------------------------------------------------- */
+void saveToFile(float cgpa, int numSemesters) {
+    FILE *fp = fopen("records.txt", "a");
+    if (fp == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+    fprintf(fp, "CGPA: %.2f | Semesters: %d\n", cgpa, numSemesters);
+    fclose(fp);
+    printf("Record saved successfully!\n");
+}
+
+/* ─── 9. VIEW RECORDS FROM FILE ──────────────────────────────
+   Used in: Saved Records page
+   In the portal this reads from browser localStorage.
+   In C this reads from records.txt line by line.
+   Portal JS equivalent: renderRecords()
+   Original C function: viewRecords()
+   ----------------------------------------------------------- */
+void viewRecords() {
+    FILE *fp = fopen("records.txt", "r");
+    if (fp == NULL) {
+        printf("No records found.\n");
+        return;
+    }
+
+    printf("\n--- Saved CGPA Records ---\n");
+    char line[200];
+    int i = 1;
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        printf("%d. %s", i++, line);
+    }
+    fclose(fp);
+}
+
+/* ─── DEMO MAIN — shows all logic working together ──────────*/
+int main() {
+    printf("============================================\n");
+    printf("  FlexPortal — C Logic Demonstration\n");
+    printf("============================================\n\n");
+
+    /* 1. Grade points */
+    printf("--- Grade Points ---\n");
+    printf("A  = %.2f\n", getGradePoint("A"));
+    printf("B+ = %.2f\n", getGradePoint("B+"));
+    printf("C  = %.2f\n", getGradePoint("C"));
+    printf("F  = %.2f\n\n", getGradePoint("F"));
+
+    /* 2. Grade from percent */
+    printf("--- Grade from Percentage ---\n");
+    printf("92%% -> %s\n", gradeFromPercent(92));
+    printf("78%% -> %s\n", gradeFromPercent(78));
+    printf("61%% -> %s\n\n", gradeFromPercent(61));
+
+    /* 3. Semester GPA */
+    printf("--- Semester GPA ---\n");
+    Course sem1[] = {
+        {"A",  3.0, 0},
+        {"B+", 3.0, 0},
+        {"A-", 2.0, 0},
+        {"NC", 0.0, 1}   /* non-credit, skipped */
+    };
+    float semGPA = calculateSemesterGPA(sem1, 4);
+    printf("Semester GPA: %.2f\n\n", semGPA);
+
+    /* 4. CGPA across 2 semesters */
+    printf("--- CGPA (2 Semesters) ---\n");
+    float points[]  = {semGPA * 8.0, 3.5 * 9.0};
+    float credits[] = {8.0, 9.0};
+    float cgpa = calculateCGPA(points, credits, 2);
+    printf("CGPA: %.2f  |  Standing: %s\n\n", cgpa, getStanding(cgpa));
+
+    /* 5. What-If projection */
+    printf("--- What-If Simulator ---\n");
+    float projected = projectCGPA(3.62, 64, 3.5 * 15, 15);
+    printf("Projected CGPA: %.2f\n", projected);
+    float needed = semesterGPANeededForTarget(3.62, 64, 15, 3.75);
+    printf("GPA needed for Cum Laude: %.2f\n\n", needed);
+
+    /* 6. Marks breakdown */
+    printf("--- Marks Breakdown ---\n");
+    float total = calculateTotalMarks(
+        13.5, 15, 15,   /* quizzes:     13.5/15, weight 15% */
+        9.0,  10, 10,   /* assignments:  9.0/10, weight 10% */
+        21.0, 25, 25,   /* mid-term:    21.0/25, weight 25% */
+        40.0, 50, 50    /* final:       40.0/50, weight 50% */
+    );
+    printf("Total Marks: %.2f%%  |  Grade: %s  |  GP: %.2f\n\n",
+           total, gradeFromPercent(total), getGradePoint(gradeFromPercent(total)));
+
+    /* 7. Save and view records */
+    saveToFile(cgpa, 2);
+    viewRecords();
+
+    return 0;
+}
